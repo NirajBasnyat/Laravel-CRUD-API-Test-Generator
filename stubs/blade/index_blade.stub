@@ -1,0 +1,48 @@
+@extends('layouts.app')
+
+@section('content')
+
+<div class="card">
+    <div class="card-header bg-info"><p class="text-center lead m-0">{{modelName}} List</p></div>
+
+    <div class="card-body">
+
+      <table class="table">
+
+        <thead>
+          <tr>
+            <th>{{modelName}}</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+            @forelse (${{modelNamePluralLowerCase}} as ${{modelNameSingularLowerCase}})
+                <tr>
+                  <td>{{${{modelNameSingularLowerCase}}->title}}</td>
+
+                  <td>
+                      <a href="{{route('{{modelNameSingularLowerCase}}.edit',['id' => ${{modelNameSingularLowerCase}}->id]) }}" class="btn btn-secondary btn-sm">Edit</a>
+                  </td>
+
+                  <td>
+                      <form action="{{route('{{modelNameSingularLowerCase}}.destroy',['id' => ${{modelNameSingularLowerCase}}->id ]) }}" method="POST">
+                         @csrf
+                          @method('DELETE')
+                          <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                      </form>
+                  </td>
+                </tr>
+            @empty
+                <td>No record</td>
+             @endforelse
+
+        </tbody>
+      </table>
+
+    </div>
+</div>
+
+@endsection

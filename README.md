@@ -5,7 +5,7 @@
 These will let you generate
 - CRUD **[ Model, Controller, Blade File, Request, Factory, Migration ]** with **Feature Test!**
 - API  **[ ApiController, ApiRequest, ApiResource ]** with **Feature Test!**
- > **Note:** Model, Factory, Migration can be also generated if needed.
+ > **Note:** Model, Factory, Migration can be also generated for API if needed.
 
 
 ## How To Start

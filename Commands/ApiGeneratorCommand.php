@@ -89,6 +89,11 @@ class ApiGeneratorCommand extends Command
             $this->getApiStub('api_controller')
         );
 
+         //create folder if it doesnot exist
+        if (!file_exists($path = app_path("/Http/Controllers/Api"))) {
+            mkdir($path, 0777, true);
+        }
+
         //update placeholder_model with valued Model
         file_put_contents(app_path("/Http/Controllers/Api/{$name}ApiController.php"), $template);
     }

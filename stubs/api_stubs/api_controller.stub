@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\{{modelName}};
+use App\Http\Controllers\Controller;
 use App\Http\Requests\{{modelName}}ApiRequest;
 use App\Http\Resources\{{modelName}}Resource;
 

@@ -49,7 +49,7 @@ class CrudGeneratorCommand extends Command
 
         //add resource controller in web.php
         File::append(base_path('routes/web.php'),
-            'Route::resource(\'' . Str::plural(strtolower($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
+            'Route::resource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
 
         //add in Database seederFile
         $current_contents = file_get_contents(base_path("database/seeders/DatabaseSeeder.php"));
@@ -59,7 +59,7 @@ class CrudGeneratorCommand extends Command
         //  File::append(base_path('database/seeders/DatabaseSeeder.php'), "\\" . "App\Models\\" . $name . "::factory(5)->create();");
 
         //make migration
-        Artisan::call('make:migration create_' . Str::plural(strtolower($name)) . '_table --create=' . Str::plural(strtolower($name)));
+        Artisan::call('make:migration create_' . Str::plural(Str::snake($name)) . '_table --create=' . Str::plural(Str::snake($name)));
 
         //to generate test
         if ($this->confirm('Do you wish to generate Test?')) {
@@ -120,13 +120,15 @@ class CrudGeneratorCommand extends Command
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}'
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}'
             ],
 
             [
                 $name,
-                strtolower($name),
-                strtolower(Str::plural($name))
+                Str::snake($name),
+                Str::plural(Str::snake($name)),
+                Str::plural(Str::kebab($name)),
             ],
 
             $this->getStub('controller')
@@ -159,13 +161,15 @@ class CrudGeneratorCommand extends Command
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}'
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
             ],
 
             [
                 $name,
-                strtolower($name),
-                strtolower(Str::plural($name))
+                Str::snake($name),
+                Str::plural(Str::snake($name)),
+                Str::plural(Str::kebab($name)),
             ],
             $this->getBladeStub('index_blade')
         );
@@ -174,11 +178,13 @@ class CrudGeneratorCommand extends Command
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralKebabCase}}'
             ],
 
             [
                 $name,
-                strtolower($name),
+                Str::snake($name),
+                Str::plural(Str::kebab($name)),
             ],
             $this->getBladeStub('create_blade')
         );
@@ -186,12 +192,12 @@ class CrudGeneratorCommand extends Command
         $template3 = str_replace(
             [
                 '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
             ],
 
             [
                 $name,
-                strtolower($name),
+                Str::plural(Str::kebab($name))
             ],
             $this->getBladeStub('edit_blade')
         );
@@ -199,15 +205,15 @@ class CrudGeneratorCommand extends Command
         $template4 = $this->getBladeStub('show_blade');
 
         //create folder if it doesnot exist
-        if (!file_exists($path = base_path("/resources/views/" . strtolower($name)))) {
+        if (!file_exists($path = base_path("/resources/views/" . Str::snake($name)))) {
             mkdir($path, 0777, true);
         }
 
         //create file
-        file_put_contents(base_path("/resources/views/" . strtolower($name) . "/index.blade.php"), $template1);
-        file_put_contents(base_path("/resources/views/" . strtolower($name) . "/create.blade.php"), $template2);
-        file_put_contents(base_path("/resources/views/" . strtolower($name) . "/edit.blade.php"), $template3);
-        file_put_contents(base_path("/resources/views/" . strtolower($name) . "/show.blade.php"), $template4);
+        file_put_contents(base_path("/resources/views/" . Str::snake($name) . "/index.blade.php"), $template1);
+        file_put_contents(base_path("/resources/views/" . Str::snake($name) . "/create.blade.php"), $template2);
+        file_put_contents(base_path("/resources/views/" . Str::snake($name) . "/edit.blade.php"), $template3);
+        file_put_contents(base_path("/resources/views/" . Str::snake($name) . "/show.blade.php"), $template4);
     }
 
     protected function feature_test_stub($name)
@@ -222,8 +228,8 @@ class CrudGeneratorCommand extends Command
 
             [
                 $name,
-                strtolower($name),
-                strtolower(Str::plural($name))
+                Str::snake($name),
+                Str::plural(Str::snake($name)),
             ],
             $this->getStub('feature_test')
         );

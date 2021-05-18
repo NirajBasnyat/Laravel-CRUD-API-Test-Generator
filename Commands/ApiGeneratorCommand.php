@@ -48,7 +48,7 @@ class ApiGeneratorCommand extends Command
         if ($this->confirm('Do you wish to generate Model, Migrations and Factory?')) {
             $this->model_stub($name);
             $this->factory_stub($name);
-            Artisan::call('make:migration create_' . Str::plural(strtolower($name)) . '_table --create=' . Str::plural(strtolower($name)));
+            Artisan::call('make:migration create_' . Str::plural(Str::snake($name)) . '_table --create=' . Str::plural(Str::snake($name)));
         }
 
         if ($this->confirm('Do you wish to generate Tests for Api?')) {
@@ -57,7 +57,7 @@ class ApiGeneratorCommand extends Command
 
         //add api resource controller in api.php
         File::append(base_path('routes/api.php'),
-            'Route::apiResource(\'' . Str::plural(strtolower($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
+            'Route::apiResource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
 
         $this->info('Hey ' . $name . ' api was generated successfully !!');
     }
@@ -83,14 +83,14 @@ class ApiGeneratorCommand extends Command
 
             [
                 $name,
-                strtolower($name),
+                Str::snake($name),
             ],
 
             $this->getApiStub('api_controller')
         );
 
         //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Controllers/{$name}ApiController.php"), $template);
+        file_put_contents(app_path("/Http/Controllers/Api/{$name}ApiController.php"), $template);
     }
 
     protected function resource_stub($name)
@@ -147,8 +147,8 @@ class ApiGeneratorCommand extends Command
 
             [
                 $name,
-                strtolower($name),
-                strtolower(Str::plural($name))
+                Str::snake($name),
+                Str::plural(Str::snake($name))
             ],
             $this->getApiStub('api_feature_test')
         );

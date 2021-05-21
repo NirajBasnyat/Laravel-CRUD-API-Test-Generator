@@ -57,9 +57,9 @@ class ApiGeneratorCommand extends Command
 
         //add api resource controller in api.php
         File::append(base_path('routes/api.php'),
-            'Route::apiResource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
+            'Route::apiResource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\Api\\"  . $name . "ApiController::class);".PHP_EOL);
 
-        $this->info('Hey ' . $name . ' api was generated successfully !!');
+        $this->info($name . ' api was generated successfully !!');
     }
 
     protected function getStub($type)
@@ -89,7 +89,7 @@ class ApiGeneratorCommand extends Command
             $this->getApiStub('api_controller')
         );
 
-         //create folder if it doesnot exist
+        //create folder if it doesnot exist
         if (!file_exists($path = app_path("/Http/Controllers/Api"))) {
             mkdir($path, 0777, true);
         }

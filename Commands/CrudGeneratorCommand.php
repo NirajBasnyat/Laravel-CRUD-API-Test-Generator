@@ -43,30 +43,51 @@ class CrudGeneratorCommand extends Command
         $name = $this->argument('name');
         $this->model_stub($name);
         $this->request_stub($name);
-        $this->controller_stub($name);
         $this->factory_stub($name);
-        $this->blade_stub($name);
-
-        //add resource controller in web.php
-        File::append(base_path('routes/web.php'),
-            'Route::resource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);".PHP_EOL);
 
         //add in Database seederFile
         $current_contents = file_get_contents(base_path("database/seeders/DatabaseSeeder.php"));
         $factory_name = "\\App\Models\\" . $name . "::factory(5)->create();";
         $replacement = str_replace('//here', $factory_name, $current_contents);
         file_put_contents(base_path("database/seeders/DatabaseSeeder.php"), $replacement);
-        //  File::append(base_path('database/seeders/DatabaseSeeder.php'), "\\" . "App\Models\\" . $name . "::factory(5)->create();");
 
         //make migration
         Artisan::call('make:migration create_' . Str::plural(Str::snake($name)) . '_table --create=' . Str::plural(Str::snake($name)));
 
+
+        if ($this->confirm('Do you want to add controllers in specific folder ?')) {
+
+            $folder_name = $this->anticipate('Folder name is', ['Auth', 'Admin', 'User']);
+
+            //add named resource controller in web.php
+            File::append(
+                base_path('routes/web.php'),
+                'Route::resource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL
+            );
+
+            $this->named_controller_stub($name, $folder_name);
+
+            $this->named_blade_stub($name, $folder_name);
+        } else {
+
+            //add resource controller in web.php
+            File::append(
+                base_path('routes/web.php'),
+                'Route::resource(\'' . Str::plural(Str::kebab($name)) . "',\\App\Http\Controllers\\"  . $name . "Controller::class);" . PHP_EOL
+            );
+
+            $this->controller_stub($name);
+
+            $this->blade_stub($name);
+        }
+
         //to generate test
         if ($this->confirm('Do you wish to generate Test?')) {
             $this->feature_test_stub($name);
-            $this->info($name . ' Test was generated successfully !!');
+            $this->line($name . ' Test was generated successfully !!');
         }
-        $this->info('Yaay ' . $name . ' crud was generated successfully !!');
+
+        $this->info($name . ' crud was generated successfully !!');
     }
 
     protected function getStub($type)
@@ -83,7 +104,8 @@ class CrudGeneratorCommand extends Command
     {
         //gives model with replaced placeholder
         $template = str_replace(
-            ['{{modelName}}'], [$name], //name comes from command
+            ['{{modelName}}'],
+            [$name], //name comes from command
             $this->getStub('model')
         );
 
@@ -100,7 +122,8 @@ class CrudGeneratorCommand extends Command
     {
         //gives model with replaced placeholder
         $template = str_replace(
-            ['{{modelName}}'], [$name], //name comes from command
+            ['{{modelName}}'],
+            [$name], //name comes from command
             $this->getStub('request')
         );
 
@@ -138,11 +161,13 @@ class CrudGeneratorCommand extends Command
         file_put_contents(app_path("/Http/Controllers/{$name}Controller.php"), $template);
     }
 
+
     protected function factory_stub($name)
     {
         //gives model with replaced placeholder
         $template = str_replace(
-            ['{{modelName}}'], [$name], //name comes from command
+            ['{{modelName}}'],
+            [$name], //name comes from command
             $this->getStub('factory')
         );
 
@@ -236,5 +261,103 @@ class CrudGeneratorCommand extends Command
 
         //update placeholder_model with valued Model
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
+    }
+
+
+    //FOR FOLDER SPECIFIC
+
+    protected function named_controller_stub($name, $folder_name)
+    {
+        //gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{folderName}}',
+                '{{folderNameSnakeCase}}',
+                '{{modelName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}'
+            ],
+
+            [
+                $folder_name,
+                Str::snake($folder_name),
+                $name,
+                Str::snake($name),
+                Str::plural(Str::snake($name)),
+                Str::plural(Str::kebab($name)),
+            ],
+
+            $this->getStub('named_controller')
+        );
+
+        //create folder if it doesnot exist
+        if (!file_exists($path = app_path("/Http/Controllers/{$folder_name}"))) {
+            mkdir($path, 0777, true);
+        }
+
+        //update placeholder_model with valued Model
+        file_put_contents(app_path("/Http/Controllers/{$folder_name}/{$name}Controller.php"), $template);
+    }
+
+    protected function named_blade_stub($name, $folder_name)
+    {
+        $template1 = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
+            ],
+
+            [
+                $name,
+                Str::snake($name),
+                Str::plural(Str::snake($name)),
+                Str::plural(Str::kebab($name)),
+            ],
+            $this->getBladeStub('index_blade')
+        );
+
+        $template2 = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralKebabCase}}'
+            ],
+
+            [
+                $name,
+                Str::snake($name),
+                Str::plural(Str::kebab($name)),
+            ],
+            $this->getBladeStub('create_blade')
+        );
+
+        $template3 = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNamePluralKebabCase}}',
+            ],
+
+            [
+                $name,
+                Str::plural(Str::kebab($name))
+            ],
+            $this->getBladeStub('edit_blade')
+        );
+
+        $template4 = $this->getBladeStub('show_blade');
+
+        //create folder if it doesnot exist
+        if (!file_exists($path = base_path("/resources/views/" . Str::snake($folder_name) . "/" . Str::snake($name)))) {
+            mkdir($path, 0777, true);
+        }
+
+        //create file
+        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . Str::snake($name) . "/index.blade.php"), $template1);
+        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . Str::snake($name) . "/create.blade.php"), $template2);
+        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . Str::snake($name) . "/edit.blade.php"), $template3);
+        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . Str::snake($name) . "/show.blade.php"), $template4);
     }
 }
